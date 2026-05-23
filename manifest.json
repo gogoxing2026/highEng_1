@@ -1,0 +1,16 @@
+{
+  "name": "영단어 마스터 - 고1 필수 어휘",
+  "short_name": "영단어 마스터",
+  "description": "고등학교 1학년 수능 필수 영단어 200개 게임형 학습 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f3ff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["education"],
+  "lang": "ko"
+}

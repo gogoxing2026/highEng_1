@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="영단어 마스터">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>영단어 마스터 — 고1 필수 어휘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f3ff;
+  --surface: #ffffff;
+  --surface2: #eeedf9;
+  --accent: #5248e8;
+  --accent2: #e83a7a;
+  --accent3: #0fad78;
+  --text: #1a1733;
+  --text2: #5a5780;
+  --text3: #9997b8;
+  --correct: #0fad78;
+  --wrong: #e83a7a;
+  --border: rgba(82,72,232,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+.header {
+  padding: 20px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-stats { display: flex; gap: 8px; }
+.hstat {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 5px;
+}
+.hstat span { color: var(--text); font-weight: 700; font-family: 'Syne', sans-serif; }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ── HOME SCREEN ── */
+.home { display: flex; flex-direction: column; gap: 16px; }
+
+.home-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px 24px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.home-hero::after {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(82,72,232,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-title {
+  font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+  line-height: 1.2; margin-bottom: 8px;
+}
+.hero-sub { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.hero-nums { display: flex; justify-content: center; gap: 24px; }
+.hero-num { text-align: center; }
+.hero-num-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--accent); }
+.hero-num-label { font-size: 11px; color: var(--text3); }
+
+.section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
+
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mode-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; cursor: pointer; transition: all 0.2s; text-align: left;
+  position: relative; overflow: hidden;
+}
+.mode-card:active { transform: scale(0.97); }
+.mode-card.active { border-color: var(--accent); background: rgba(82,72,232,0.07); }
+.mode-icon { font-size: 24px; margin-bottom: 8px; }
+.mode-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.mode-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+.mode-pts { position: absolute; top: 10px; right: 10px; background: rgba(82,72,232,0.1); color: var(--accent); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; font-family: 'Syne', sans-serif; }
+
+.cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-pill {
+  flex-shrink: 0; padding: 7px 16px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.cat-pill.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 700; }
+
+.difficulty-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.diff-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.15s;
+}
+.diff-btn.active { border-color: var(--accent2); background: rgba(232,58,122,0.07); }
+.diff-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text); }
+.diff-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.start-btn {
+  width: 100%; padding: 18px; border-radius: var(--radius);
+  background: var(--accent); border: none; color: white;
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+  position: relative; overflow: hidden;
+}
+.start-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent); }
+.start-btn:active { transform: scale(0.98); background: #5954e0; }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { margin-bottom: 4px; }
+.progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+.progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── QUESTION CARD ── */
+.question-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
+  padding: 28px 24px; text-align: center; position: relative; overflow: hidden;
+}
+.question-card::before {
+  content: '';
+  position: absolute; bottom: -30px; left: -30px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(232,58,122,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.q-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px; font-size: 11px; color: var(--text3);
+  margin-bottom: 16px; font-family: 'Syne', sans-serif; font-weight: 700;
+}
+.q-word {
+  font-family: 'Noto Sans KR', sans-serif; font-size: 42px; font-weight: 700;
+  color: var(--text); line-height: 1; margin-bottom: 8px;
+  letter-spacing: 0;
+}
+.q-pron { font-size: 14px; color: var(--text3); margin-bottom: 6px; font-style: italic; }
+.q-pos {
+  display: inline-block; background: rgba(82,72,232,0.1); color: var(--accent);
+  border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+  font-family: 'Syne', sans-serif; letter-spacing: 0.05em;
+}
+.q-meaning-big {
+  font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.3;
+  margin-bottom: 8px; font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* ── OPTIONS ── */
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px; cursor: pointer;
+  font-size: 15px; color: var(--text); text-align: left;
+  transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+  line-height: 1.4;
+}
+.option:active:not([disabled]) { transform: scale(0.99); }
+.option[disabled] { cursor: default; }
+.option:hover:not([disabled]):not(.correct):not(.wrong) { border-color: var(--accent); background: rgba(82,72,232,0.06); }
+.option.correct { background: rgba(15,173,120,0.1); border-color: var(--correct); color: #085c3e; }
+.option.wrong { background: rgba(232,58,122,0.1); border-color: var(--wrong); color: #8a1040; }
+.opt-idx {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--bg);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; font-family: 'Syne', sans-serif;
+  color: var(--text3);
+}
+.option.correct .opt-idx { background: var(--correct); border-color: var(--correct); color: #fff; }
+.option.wrong .opt-idx { background: var(--wrong); border-color: var(--wrong); color: #fff; }
+
+/* ── SPELL MODE ── */
+.hint-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+.lbox {
+  width: 38px; height: 44px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--surface2); display: flex; align-items: center; justify-content: center;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 18px; font-weight: 700; color: var(--text);
+  transition: all 0.2s;
+}
+.lbox.shown { background: rgba(82,72,232,0.1); border-color: var(--accent); color: var(--accent); }
+.spell-input {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px; font-size: 20px; color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 700; text-align: center;
+  letter-spacing: 0.04em; outline: none; transition: border-color 0.2s; margin-bottom: 12px;
+  -webkit-appearance: none;
+}
+.spell-input:focus { border-color: var(--accent); }
+.spell-input.ok { border-color: var(--correct); color: var(--correct); }
+.spell-input.fail { border-color: var(--wrong); color: var(--wrong); }
+.action-btn {
+  width: 100%; padding: 16px; border-radius: var(--radius); border: none;
+  background: var(--accent); color: white; font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+.action-btn:active { transform: scale(0.98); }
+.action-btn.secondary {
+  background: transparent; border: 1.5px solid var(--border); color: var(--text2);
+  margin-top: 10px;
+}
+
+/* ── OX QUIZ ── */
+.ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ox-btn {
+  padding: 28px 0; border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface2); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px;
+}
+.ox-btn:active:not([disabled]) { transform: scale(0.97); }
+.ox-btn[disabled] { cursor: default; }
+.ox-btn:hover:not([disabled]) { border-color: var(--accent); background: rgba(82,72,232,0.06); }
+.ox-btn.correct { background: rgba(15,173,120,0.1); border-color: var(--correct); }
+.ox-btn.wrong { background: rgba(232,58,122,0.1); border-color: var(--wrong); }
+.shown-meaning {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px; font-size: 18px;
+  font-weight: 700; color: var(--text); text-align: center;
+  margin-bottom: 16px; line-height: 1.4;
+}
+
+/* ── FEEDBACK ── */
+.feedback-card {
+  border-radius: var(--radius); padding: 16px;
+  border: 1px solid;
+}
+.feedback-card.ok { background: rgba(15,173,120,0.07); border-color: rgba(15,173,120,0.3); }
+.feedback-card.fail { background: rgba(232,58,122,0.07); border-color: rgba(232,58,122,0.3); }
+.fb-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.feedback-card.ok .fb-title { color: #085c3e; }
+.feedback-card.fail .fb-title { color: #8a1040; }
+.fb-answer { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+.example-wrap {
+  background: var(--surface); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); padding: 12px 14px;
+}
+.ex-tag { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 6px; font-family: 'Syne', sans-serif; }
+.ex-en { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 4px; font-style: italic; }
+.ex-ko { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ── RESULT ── */
+.result-wrap { display: flex; flex-direction: column; gap: 14px; }
+.result-hero {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; padding: 32px 24px; text-align: center;
+}
+.result-grade { font-family: 'Syne', sans-serif; font-size: 64px; font-weight: 800; line-height: 1; }
+.result-pts { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--text2); margin-bottom: 8px; }
+.result-msg { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ritem { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+.ritem-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+.ritem-label { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* ── STREAK TOAST ── */
+.streak-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; border-radius: 30px; padding: 10px 20px;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+  z-index: 999; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; pointer-events: none;
+}
+.streak-toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── BOTTOM SAFE AREA ── */
+.bottom-pad { height: env(safe-area-inset-bottom, 20px); }
+
+/* ── ANIMATIONS ── */
+@keyframes pop { 0%{transform:scale(0.95);opacity:0} 60%{transform:scale(1.02)} 100%{transform:scale(1);opacity:1} }
+.pop { animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.shake { animation: shake 0.3s ease; }
+
+/* ── SPEAK BUTTON ── */
+.speak-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(82,72,232,0.08); border: 1.5px solid rgba(82,72,232,0.2);
+  border-radius: 20px; padding: 7px 16px; cursor: pointer;
+  font-size: 13px; color: var(--accent); font-weight: 700;
+  font-family: 'Syne', sans-serif; transition: all 0.15s; margin-top: 10px;
+}
+.speak-btn:hover { background: rgba(82,72,232,0.14); }
+.speak-btn:active { transform: scale(0.95); }
+.speak-btn.speaking { background: rgba(82,72,232,0.18); border-color: var(--accent); animation: pulse 0.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">영단어 마스터</div>
+    <div class="header-stats">
+      <div class="hstat">🔥 <span id="hStreak">0</span></div>
+      <div class="hstat">⭐ <span id="hScore">0</span></div>
+    </div>
+  </div>
+
+  <div class="main" id="mainArea"></div>
+  <div class="bottom-pad"></div>
+</div>
+
+<div class="streak-toast" id="toast"></div>
+
+<script>
+const WORDS = [
+  {w:"abandon",p:"/əˈbændən/",m:"버리다, 포기하다",c:"동사",e:"She had to abandon her plans due to bad weather.",k:"그녀는 나쁜 날씨 때문에 계획을 포기해야 했다."},
+  {w:"absence",p:"/ˈæbsəns/",m:"부재, 결석",c:"명사",e:"His absence from school worried his parents.",k:"그의 결석은 부모님을 걱정시켰다."},
+  {w:"accomplish",p:"/əˈkɑːmplɪʃ/",m:"이루다, 달성하다",c:"동사",e:"She accomplished her goal after years of hard work.",k:"그녀는 수년간의 노력 끝에 목표를 달성했다."},
+  {w:"accurate",p:"/ˈækjərət/",m:"정확한",c:"형용사",e:"The weather forecast was quite accurate today.",k:"오늘 날씨 예보는 꽤 정확했다."},
+  {w:"acquire",p:"/əˈkwaɪər/",m:"얻다, 습득하다",c:"동사",e:"He acquired new skills through the training program.",k:"그는 훈련 프로그램을 통해 새로운 기술을 습득했다."},
+  {w:"admire",p:"/ədˈmaɪər/",m:"감탄하다, 존경하다",c:"동사",e:"I admire her courage in difficult situations.",k:"나는 어려운 상황에서 그녀의 용기를 존경한다."},
+  {w:"affect",p:"/əˈfekt/",m:"영향을 미치다",c:"동사",e:"The rain affected the outdoor event significantly.",k:"비는 야외 행사에 상당한 영향을 미쳤다."},
+  {w:"alternative",p:"/ɔːlˈtɜːrnətɪv/",m:"대안, 대안적인",c:"명사·형용사",e:"We need to find an alternative solution to this problem.",k:"우리는 이 문제의 대안적인 해결책을 찾아야 한다."},
+  {w:"analyze",p:"/ˈænəlaɪz/",m:"분석하다",c:"동사",e:"Scientists analyze data to find patterns.",k:"과학자들은 패턴을 찾기 위해 데이터를 분석한다."},
+  {w:"ancient",p:"/ˈeɪnʃənt/",m:"고대의, 아주 오래된",c:"형용사",e:"The museum displayed ancient artifacts from Egypt.",k:"박물관은 이집트의 고대 유물을 전시했다."},
+  {w:"appreciate",p:"/əˈpriːʃieɪt/",m:"감사하다, 감상하다",c:"동사",e:"I really appreciate your help with this project.",k:"이 프로젝트에 도움을 주셔서 정말 감사합니다."},
+  {w:"approach",p:"/əˈproʊtʃ/",m:"접근하다, 접근법",c:"동사·명사",e:"We need a different approach to solve this issue.",k:"이 문제를 해결하기 위해 다른 접근법이 필요하다."},
+  {w:"atmosphere",p:"/ˈætməsfɪər/",m:"대기, 분위기",c:"명사",e:"The restaurant had a warm and friendly atmosphere.",k:"그 레스토랑은 따뜻하고 친근한 분위기를 가지고 있었다."},
+  {w:"attempt",p:"/əˈtempt/",m:"시도, 시도하다",c:"명사·동사",e:"She made several attempts to climb the mountain.",k:"그녀는 산을 오르기 위해 여러 번 시도했다."},
+  {w:"benefit",p:"/ˈbenɪfɪt/",m:"혜택, 이익",c:"명사",e:"Exercise has many benefits for your health.",k:"운동은 건강에 많은 이점이 있다."},
+  {w:"capable",p:"/ˈkeɪpəbl/",m:"유능한, ~할 수 있는",c:"형용사",e:"She is capable of solving complex problems.",k:"그녀는 복잡한 문제를 해결할 수 있다."},
+  {w:"challenge",p:"/ˈtʃælɪndʒ/",m:"도전, 도전하다",c:"명사·동사",e:"Learning a new language is a great challenge.",k:"새로운 언어를 배우는 것은 큰 도전이다."},
+  {w:"circumstance",p:"/ˈsɜːrkəmstæns/",m:"상황, 환경",c:"명사",e:"Under these circumstances, we must act quickly.",k:"이러한 상황에서 우리는 빠르게 행동해야 한다."},
+  {w:"communicate",p:"/kəˈmjuːnɪkeɪt/",m:"소통하다, 전달하다",c:"동사",e:"It is important to communicate clearly with others.",k:"다른 사람들과 명확하게 소통하는 것이 중요하다."},
+  {w:"conclude",p:"/kənˈkluːd/",m:"결론 내리다, 끝내다",c:"동사",e:"The scientist concluded that the experiment was successful.",k:"과학자는 실험이 성공적이었다고 결론지었다."},
+  {w:"confident",p:"/ˈkɑːnfɪdənt/",m:"자신감 있는",c:"형용사",e:"She felt confident about her presentation.",k:"그녀는 발표에 대해 자신감을 느꼈다."},
+  {w:"contribute",p:"/kənˈtrɪbjuːt/",m:"기여하다, 공헌하다",c:"동사",e:"Everyone contributed to the success of the project.",k:"모두가 프로젝트의 성공에 기여했다."},
+  {w:"convince",p:"/kənˈvɪns/",m:"설득하다, 납득시키다",c:"동사",e:"He tried to convince her to join the team.",k:"그는 그녀를 팀에 합류하도록 설득하려 했다."},
+  {w:"courage",p:"/ˈkɜːrɪdʒ/",m:"용기",c:"명사",e:"It takes courage to speak in front of many people.",k:"많은 사람들 앞에서 말하려면 용기가 필요하다."},
+  {w:"curious",p:"/ˈkjʊəriəs/",m:"호기심 있는",c:"형용사",e:"Children are naturally curious about the world.",k:"어린이들은 자연스럽게 세상에 대해 호기심을 가진다."},
+  {w:"damage",p:"/ˈdæmɪdʒ/",m:"손상, 피해를 주다",c:"명사·동사",e:"The storm caused serious damage to the buildings.",k:"폭풍은 건물들에 심각한 피해를 주었다."},
+  {w:"decrease",p:"/dɪˈkriːs/",m:"감소하다, 줄다",c:"동사",e:"The temperature decreased rapidly overnight.",k:"기온이 밤새 빠르게 감소했다."},
+  {w:"demonstrate",p:"/ˈdemənstreɪt/",m:"보여주다, 증명하다",c:"동사",e:"The teacher demonstrated how to solve the equation.",k:"선생님은 방정식을 푸는 방법을 보여주었다."},
+  {w:"determine",p:"/dɪˈtɜːrmɪn/",m:"결정하다, 파악하다",c:"동사",e:"We need to determine the cause of the problem.",k:"우리는 문제의 원인을 파악해야 한다."},
+  {w:"devote",p:"/dɪˈvoʊt/",m:"헌신하다, 바치다",c:"동사",e:"She devoted her life to helping others.",k:"그녀는 다른 사람들을 돕는 데 일생을 바쳤다."},
+  {w:"disaster",p:"/dɪˈzæstər/",m:"재앙, 재난",c:"명사",e:"The earthquake was a natural disaster.",k:"지진은 자연 재해였다."},
+  {w:"distinguish",p:"/dɪˈstɪŋɡwɪʃ/",m:"구별하다, 식별하다",c:"동사",e:"Can you distinguish between these two colors?",k:"이 두 색을 구별할 수 있나요?"},
+  {w:"efficient",p:"/ɪˈfɪʃənt/",m:"효율적인",c:"형용사",e:"This new machine is more efficient than the old one.",k:"이 새 기계는 이전 것보다 더 효율적이다."},
+  {w:"emerge",p:"/ɪˈmɜːrdʒ/",m:"나타나다, 등장하다",c:"동사",e:"A new solution emerged after hours of discussion.",k:"수 시간의 토론 끝에 새로운 해결책이 나타났다."},
+  {w:"emphasize",p:"/ˈemfəsaɪz/",m:"강조하다",c:"동사",e:"The teacher emphasized the importance of practice.",k:"선생님은 연습의 중요성을 강조했다."},
+  {w:"encounter",p:"/ɪnˈkaʊntər/",m:"만나다, 마주치다",c:"동사",e:"He encountered many difficulties during the journey.",k:"그는 여행 중에 많은 어려움을 마주쳤다."},
+  {w:"enthusiasm",p:"/ɪnˈθuːziæzəm/",m:"열정, 열의",c:"명사",e:"Her enthusiasm for learning impressed everyone.",k:"학습에 대한 그녀의 열정은 모두를 감동시켰다."},
+  {w:"essential",p:"/ɪˈsenʃəl/",m:"필수적인, 본질적인",c:"형용사",e:"Water is essential for all living things.",k:"물은 모든 생물에게 필수적이다."},
+  {w:"evaluate",p:"/ɪˈvæljueɪt/",m:"평가하다",c:"동사",e:"Teachers evaluate students' work throughout the year.",k:"선생님들은 1년 내내 학생들의 과제를 평가한다."},
+  {w:"evidence",p:"/ˈevɪdəns/",m:"증거, 근거",c:"명사",e:"There is strong evidence that exercise improves mood.",k:"운동이 기분을 향상시킨다는 강한 증거가 있다."},
+  {w:"evolve",p:"/ɪˈvɑːlv/",m:"진화하다, 발전하다",c:"동사",e:"Technology has evolved rapidly in recent years.",k:"기술은 최근 몇 년간 빠르게 발전했다."},
+  {w:"expand",p:"/ɪkˈspænd/",m:"확장하다, 넓히다",c:"동사",e:"Reading books helps to expand your vocabulary.",k:"독서는 어휘를 넓히는 데 도움이 된다."},
+  {w:"explore",p:"/ɪkˈsplɔːr/",m:"탐험하다, 탐구하다",c:"동사",e:"Scientists explore the ocean floor for new species.",k:"과학자들은 새로운 종을 위해 해저를 탐사한다."},
+  {w:"flexible",p:"/ˈfleksɪbl/",m:"유연한, 융통성 있는",c:"형용사",e:"A good leader needs to be flexible in different situations.",k:"좋은 리더는 다양한 상황에서 유연할 필요가 있다."},
+  {w:"generate",p:"/ˈdʒenəreɪt/",m:"만들어내다, 생성하다",c:"동사",e:"Solar panels generate electricity from sunlight.",k:"태양 전지판은 햇빛으로 전기를 만들어낸다."},
+  {w:"gradual",p:"/ˈɡrædʒuəl/",m:"점진적인",c:"형용사",e:"There was a gradual improvement in his health.",k:"그의 건강에 점진적인 개선이 있었다."},
+  {w:"heritage",p:"/ˈherɪtɪdʒ/",m:"유산, 전통",c:"명사",e:"We must protect our cultural heritage for future generations.",k:"우리는 미래 세대를 위해 문화 유산을 보호해야 한다."},
+  {w:"ignore",p:"/ɪɡˈnɔːr/",m:"무시하다",c:"동사",e:"You should not ignore the warning signs.",k:"경고 신호를 무시해서는 안 된다."},
+  {w:"illustrate",p:"/ˈɪləstreɪt/",m:"설명하다, 예시하다",c:"동사",e:"The diagram illustrates how the system works.",k:"다이어그램은 시스템이 어떻게 작동하는지 설명한다."},
+  {w:"imagine",p:"/ɪˈmædʒɪn/",m:"상상하다",c:"동사",e:"Imagine a world without plastic waste.",k:"플라스틱 폐기물이 없는 세상을 상상해 봐라."},
+  {w:"immediate",p:"/ɪˈmiːdiət/",m:"즉각적인, 당장의",c:"형용사",e:"The government took immediate action after the flood.",k:"정부는 홍수 이후 즉각적인 조치를 취했다."},
+  {w:"impact",p:"/ˈɪmpækt/",m:"영향, 충격",c:"명사",e:"Social media has a huge impact on teenagers.",k:"소셜 미디어는 십대들에게 큰 영향을 미친다."},
+  {w:"improve",p:"/ɪmˈpruːv/",m:"향상시키다, 개선하다",c:"동사",e:"Regular practice will improve your English skills.",k:"규칙적인 연습은 영어 실력을 향상시킬 것이다."},
+  {w:"indicate",p:"/ˈɪndɪkeɪt/",m:"가리키다, 나타내다",c:"동사",e:"The signs indicate that spring is coming.",k:"신호들은 봄이 오고 있음을 나타낸다."},
+  {w:"influence",p:"/ˈɪnfluəns/",m:"영향, 영향을 미치다",c:"명사·동사",e:"Music can influence people's emotions deeply.",k:"음악은 사람들의 감정에 깊이 영향을 미칠 수 있다."},
+  {w:"inherit",p:"/ɪnˈherɪt/",m:"물려받다, 상속하다",c:"동사",e:"She inherited her grandmother's love of reading.",k:"그녀는 독서에 대한 할머니의 사랑을 물려받았다."},
+  {w:"inspire",p:"/ɪnˈspaɪər/",m:"영감을 주다, 고무하다",c:"동사",e:"Her speech inspired thousands of young people.",k:"그녀의 연설은 수천 명의 젊은이들에게 영감을 주었다."},
+  {w:"intense",p:"/ɪnˈtens/",m:"강렬한, 심한",c:"형용사",e:"The competition was extremely intense this year.",k:"올해 경쟁은 매우 치열했다."},
+  {w:"interpret",p:"/ɪnˈtɜːrprɪt/",m:"해석하다, 통역하다",c:"동사",e:"It is difficult to interpret his facial expression.",k:"그의 표정을 해석하기가 어렵다."},
+  {w:"involve",p:"/ɪnˈvɑːlv/",m:"포함하다, 관여하다",c:"동사",e:"The project involves a lot of research and teamwork.",k:"그 프로젝트는 많은 연구와 팀워크를 포함한다."},
+  {w:"isolate",p:"/ˈaɪsəleɪt/",m:"고립시키다, 분리하다",c:"동사",e:"The patient was isolated to prevent the spread of disease.",k:"환자는 질병 확산을 막기 위해 격리되었다."},
+  {w:"justify",p:"/ˈdʒʌstɪfaɪ/",m:"정당화하다",c:"동사",e:"You need to justify your answer with evidence.",k:"증거로 답을 정당화해야 한다."},
+  {w:"maintain",p:"/meɪnˈteɪn/",m:"유지하다, 주장하다",c:"동사",e:"It is important to maintain a healthy lifestyle.",k:"건강한 생활 방식을 유지하는 것이 중요하다."},
+  {w:"major",p:"/ˈmeɪdʒər/",m:"주요한, 중대한",c:"형용사",e:"This is a major issue that needs to be addressed.",k:"이것은 해결해야 할 주요한 문제이다."},
+  {w:"manage",p:"/ˈmænɪdʒ/",m:"관리하다, 해내다",c:"동사",e:"She manages her time very efficiently.",k:"그녀는 시간을 매우 효율적으로 관리한다."},
+  {w:"material",p:"/məˈtɪəriəl/",m:"물질, 자료, 물질적인",c:"명사·형용사",e:"The artist used natural materials for the sculpture.",k:"예술가는 조각품에 천연 재료를 사용했다."},
+  {w:"measure",p:"/ˈmeʒər/",m:"측정하다, 조치",c:"동사·명사",e:"Scientists measure temperature in degrees Celsius.",k:"과학자들은 온도를 섭씨로 측정한다."},
+  {w:"mention",p:"/ˈmenʃən/",m:"언급하다",c:"동사",e:"He mentioned that he would be late.",k:"그는 늦을 것이라고 언급했다."},
+  {w:"method",p:"/ˈmeθəd/",m:"방법, 방식",c:"명사",e:"This is the most effective method to learn a language.",k:"이것이 언어를 배우는 가장 효과적인 방법이다."},
+  {w:"modify",p:"/ˈmɑːdɪfaɪ/",m:"수정하다, 변경하다",c:"동사",e:"We need to modify our plans based on the new data.",k:"우리는 새로운 데이터를 바탕으로 계획을 수정해야 한다."},
+  {w:"motivate",p:"/ˈmoʊtɪveɪt/",m:"동기부여하다",c:"동사",e:"Good teachers motivate students to do their best.",k:"좋은 선생님은 학생들이 최선을 다하도록 동기부여한다."},
+  {w:"numerous",p:"/ˈnjuːmərəs/",m:"수많은",c:"형용사",e:"There are numerous ways to solve this problem.",k:"이 문제를 해결하는 방법은 수없이 많다."},
+  {w:"objective",p:"/əbˈdʒektɪv/",m:"목표, 객관적인",c:"명사·형용사",e:"Our main objective is to improve customer satisfaction.",k:"우리의 주요 목표는 고객 만족도를 향상시키는 것이다."},
+  {w:"observe",p:"/əbˈzɜːrv/",m:"관찰하다, 지키다",c:"동사",e:"Scientists observe the behavior of animals in the wild.",k:"과학자들은 야생에서 동물의 행동을 관찰한다."},
+  {w:"obtain",p:"/əbˈteɪn/",m:"얻다, 획득하다",c:"동사",e:"You need a passport to obtain a visa.",k:"비자를 받으려면 여권이 필요하다."},
+  {w:"obvious",p:"/ˈɑːbviəs/",m:"명백한, 분명한",c:"형용사",e:"It was obvious that she was nervous during the speech.",k:"그녀가 연설 중에 긴장했다는 것이 분명했다."},
+  {w:"occur",p:"/əˈkɜːr/",m:"발생하다, 일어나다",c:"동사",e:"Natural disasters can occur without warning.",k:"자연재해는 경고 없이 발생할 수 있다."},
+  {w:"oppose",p:"/əˈpoʊz/",m:"반대하다",c:"동사",e:"Many people opposed the new construction plan.",k:"많은 사람들이 새로운 건설 계획에 반대했다."},
+  {w:"overcome",p:"/ˌoʊvərˈkʌm/",m:"극복하다",c:"동사",e:"She overcame her fear of public speaking.",k:"그녀는 대중 연설에 대한 두려움을 극복했다."},
+  {w:"participate",p:"/pɑːrˈtɪsɪpeɪt/",m:"참여하다",c:"동사",e:"All students are encouraged to participate in class discussions.",k:"모든 학생들이 수업 토론에 참여하도록 권장된다."},
+  {w:"perceive",p:"/pərˈsiːv/",m:"인식하다, 지각하다",c:"동사",e:"We often perceive the world differently from others.",k:"우리는 종종 세상을 다른 사람들과 다르게 인식한다."},
+  {w:"perspective",p:"/pərˈspektɪv/",m:"관점, 시각",c:"명사",e:"Try to see this situation from a different perspective.",k:"이 상황을 다른 관점에서 바라보려고 노력해라."},
+  {w:"possess",p:"/pəˈzes/",m:"소유하다, 지니다",c:"동사",e:"She possesses a unique ability to inspire others.",k:"그녀는 다른 사람들에게 영감을 주는 독특한 능력을 지니고 있다."},
+  {w:"potential",p:"/pəˈtenʃəl/",m:"잠재력, 잠재적인",c:"명사·형용사",e:"Every student has the potential to succeed.",k:"모든 학생은 성공할 잠재력이 있다."},
+  {w:"precious",p:"/ˈpreʃəs/",m:"소중한, 귀중한",c:"형용사",e:"Time is the most precious resource we have.",k:"시간은 우리가 가진 가장 소중한 자원이다."},
+  {w:"predict",p:"/prɪˈdɪkt/",m:"예측하다",c:"동사",e:"Scientists can predict earthquakes using special equipment.",k:"과학자들은 특수 장비로 지진을 예측할 수 있다."},
+  {w:"preserve",p:"/prɪˈzɜːrv/",m:"보존하다, 지키다",c:"동사",e:"We must preserve the natural environment for future generations.",k:"우리는 미래 세대를 위해 자연환경을 보존해야 한다."},
+  {w:"prevent",p:"/prɪˈvent/",m:"막다, 예방하다",c:"동사",e:"Regular exercise can prevent many diseases.",k:"규칙적인 운동은 많은 질병을 예방할 수 있다."},
+  {w:"process",p:"/ˈprɑːses/",m:"과정, 처리하다",c:"명사·동사",e:"The process of learning a language takes time.",k:"언어를 배우는 과정은 시간이 걸린다."},
+  {w:"productive",p:"/prəˈdʌktɪv/",m:"생산적인",c:"형용사",e:"We had a very productive meeting this morning.",k:"오늘 아침 우리는 매우 생산적인 회의를 했다."},
+  {w:"profound",p:"/prəˈfaʊnd/",m:"심오한, 깊은",c:"형용사",e:"The book had a profound effect on my thinking.",k:"그 책은 나의 사고에 심오한 영향을 미쳤다."},
+  {w:"promote",p:"/prəˈmoʊt/",m:"홍보하다, 촉진하다",c:"동사",e:"The campaign promotes healthy eating habits.",k:"그 캠페인은 건강한 식습관을 촉진한다."},
+  {w:"propose",p:"/prəˈpoʊz/",m:"제안하다",c:"동사",e:"She proposed a new plan to reduce pollution.",k:"그녀는 오염을 줄이기 위한 새로운 계획을 제안했다."},
+  {w:"protect",p:"/prəˈtekt/",m:"보호하다",c:"동사",e:"We must protect endangered animals from extinction.",k:"우리는 멸종 위기의 동물들을 보호해야 한다."},
+  {w:"recognize",p:"/ˈrekəɡnaɪz/",m:"알아보다, 인정하다",c:"동사",e:"I recognized him from his voice alone.",k:"나는 그의 목소리만으로 그를 알아보았다."},
+  {w:"reduce",p:"/rɪˈduːs/",m:"줄이다, 감소시키다",c:"동사",e:"We should reduce the amount of plastic we use.",k:"우리가 사용하는 플라스틱의 양을 줄여야 한다."},
+  {w:"reflect",p:"/rɪˈflekt/",m:"반영하다, 반성하다",c:"동사",e:"His words reflected his deep concern for the environment.",k:"그의 말은 환경에 대한 깊은 관심을 반영했다."},
+  {w:"refuse",p:"/rɪˈfjuːz/",m:"거부하다, 거절하다",c:"동사",e:"She refused to give up despite many failures.",k:"그녀는 많은 실패에도 불구하고 포기를 거부했다."},
+  {w:"relate",p:"/rɪˈleɪt/",m:"관련되다, 이해하다",c:"동사",e:"Can you relate this theory to real life examples?",k:"이 이론을 실제 사례와 연결 지을 수 있나요?"},
+  {w:"relevant",p:"/ˈreləvənt/",m:"관련 있는, 적절한",c:"형용사",e:"Please provide only the most relevant information.",k:"가장 관련 있는 정보만 제공해 주세요."},
+  {w:"reliable",p:"/rɪˈlaɪəbl/",m:"믿을 수 있는, 신뢰할 수 있는",c:"형용사",e:"We need a reliable source of information.",k:"우리는 신뢰할 수 있는 정보 출처가 필요하다."},
+  {w:"remarkable",p:"/rɪˈmɑːrkəbl/",m:"놀라운, 주목할 만한",c:"형용사",e:"She made a remarkable recovery after the surgery.",k:"그녀는 수술 후 놀라운 회복을 보였다."},
+  {w:"represent",p:"/ˌreprɪˈzent/",m:"나타내다, 대표하다",c:"동사",e:"The blue color represents the ocean in the painting.",k:"파란색은 그림에서 바다를 나타낸다."},
+  {w:"require",p:"/rɪˈkwaɪər/",m:"요구하다, 필요로 하다",c:"동사",e:"This job requires a high level of English proficiency.",k:"이 직업은 높은 수준의 영어 능력을 요구한다."},
+  {w:"resolve",p:"/rɪˈzɑːlv/",m:"해결하다, 결심하다",c:"동사",e:"They resolved the conflict through open communication.",k:"그들은 열린 소통을 통해 갈등을 해결했다."},
+  {w:"resource",p:"/ˈriːsɔːrs/",m:"자원, 자료",c:"명사",e:"Water is a precious natural resource.",k:"물은 소중한 천연 자원이다."},
+  {w:"respond",p:"/rɪˈspɑːnd/",m:"응답하다, 반응하다",c:"동사",e:"How did he respond to the news?",k:"그는 그 소식에 어떻게 반응했나요?"},
+  {w:"responsibility",p:"/rɪˌspɑːnsəˈbɪləti/",m:"책임, 의무",c:"명사",e:"We all have a responsibility to protect the environment.",k:"우리 모두는 환경을 보호할 책임이 있다."},
+  {w:"restore",p:"/rɪˈstɔːr/",m:"회복하다, 복원하다",c:"동사",e:"The old building was carefully restored to its original state.",k:"오래된 건물은 원래 상태로 조심스럽게 복원되었다."},
+  {w:"reveal",p:"/rɪˈviːl/",m:"드러내다, 밝히다",c:"동사",e:"The investigation revealed some surprising facts.",k:"조사는 몇 가지 놀라운 사실을 드러냈다."},
+  {w:"significant",p:"/sɪɡˈnɪfɪkənt/",m:"중요한, 상당한",c:"형용사",e:"There has been a significant improvement in air quality.",k:"공기 질에 상당한 개선이 있었다."},
+  {w:"similar",p:"/ˈsɪmɪlər/",m:"비슷한, 유사한",c:"형용사",e:"The two countries have similar cultures and traditions.",k:"두 나라는 비슷한 문화와 전통을 가지고 있다."},
+  {w:"situation",p:"/ˌsɪtʃuˈeɪʃən/",m:"상황, 형편",c:"명사",e:"We need to assess the situation before making a decision.",k:"결정을 내리기 전에 상황을 평가해야 한다."},
+  {w:"solve",p:"/sɑːlv/",m:"해결하다, 풀다",c:"동사",e:"Can you solve this math problem?",k:"이 수학 문제를 풀 수 있나요?"},
+  {w:"specific",p:"/spəˈsɪfɪk/",m:"구체적인, 특정한",c:"형용사",e:"Please give me a specific example.",k:"구체적인 예를 들어 주세요."},
+  {w:"strategy",p:"/ˈstrætədʒi/",m:"전략, 전술",c:"명사",e:"We need a clear strategy to win this competition.",k:"이 대회에서 이기려면 명확한 전략이 필요하다."},
+  {w:"struggle",p:"/ˈstrʌɡl/",m:"몸부림치다, 힘들게 노력하다",c:"동사·명사",e:"Many students struggle with mathematics.",k:"많은 학생들이 수학에 어려움을 겪는다."},
+  {w:"succeed",p:"/səkˈsiːd/",m:"성공하다",c:"동사",e:"With enough effort, anyone can succeed.",k:"충분한 노력으로 누구든 성공할 수 있다."},
+  {w:"sufficient",p:"/səˈfɪʃənt/",m:"충분한",c:"형용사",e:"Make sure you get sufficient sleep every night.",k:"매일 밤 충분한 수면을 취해야 한다."},
+  {w:"suggest",p:"/səˈdʒest/",m:"제안하다, 암시하다",c:"동사",e:"I suggest that we start the meeting on time.",k:"제시간에 회의를 시작하자고 제안한다."},
+  {w:"support",p:"/səˈpɔːrt/",m:"지지하다, 지원하다",c:"동사·명사",e:"Parents should support their children's dreams.",k:"부모는 자녀의 꿈을 지지해야 한다."},
+  {w:"suppose",p:"/səˈpoʊz/",m:"가정하다, 생각하다",c:"동사",e:"Suppose you had unlimited time, what would you do?",k:"무한한 시간이 있다고 가정한다면, 무엇을 하겠는가?"},
+  {w:"survive",p:"/sərˈvaɪv/",m:"살아남다, 생존하다",c:"동사",e:"How did he survive in the desert for so long?",k:"그는 어떻게 그렇게 오랫동안 사막에서 살아남았나요?"},
+  {w:"symbol",p:"/ˈsɪmbəl/",m:"상징, 기호",c:"명사",e:"The dove is a symbol of peace.",k:"비둘기는 평화의 상징이다."},
+  {w:"tendency",p:"/ˈtendənsi/",m:"경향, 성향",c:"명사",e:"She has a tendency to overthink everything.",k:"그녀는 모든 것을 지나치게 생각하는 경향이 있다."},
+  {w:"transform",p:"/trænsˈfɔːrm/",m:"변형하다, 바꾸다",c:"동사",e:"Education can transform a person's life completely.",k:"교육은 사람의 인생을 완전히 바꿀 수 있다."},
+  {w:"transport",p:"/ˈtrænspɔːrt/",m:"운송하다, 수송",c:"동사·명사",e:"The goods were transported by ship.",k:"상품은 배로 운송되었다."},
+  {w:"typical",p:"/ˈtɪpɪkl/",m:"전형적인, 보통의",c:"형용사",e:"This is a typical example of student error.",k:"이것은 학생 오류의 전형적인 예이다."},
+  {w:"unique",p:"/juːˈniːk/",m:"독특한, 유일한",c:"형용사",e:"Each person has a unique way of thinking.",k:"각 사람은 고유한 사고방식을 가지고 있다."},
+  {w:"utilize",p:"/ˈjuːtɪlaɪz/",m:"활용하다, 이용하다",c:"동사",e:"We should utilize our time more effectively.",k:"우리는 시간을 더 효과적으로 활용해야 한다."},
+  {w:"valid",p:"/ˈvælɪd/",m:"유효한, 타당한",c:"형용사",e:"Your ticket is valid for one month.",k:"당신의 티켓은 한 달 동안 유효하다."},
+  {w:"variety",p:"/vəˈraɪəti/",m:"다양성, 종류",c:"명사",e:"A variety of foods are available at the market.",k:"시장에는 다양한 음식들이 있다."},
+  {w:"visible",p:"/ˈvɪzɪbl/",m:"눈에 보이는, 뚜렷한",c:"형용사",e:"The damage was clearly visible from the outside.",k:"피해가 외부에서 뚜렷하게 보였다."},
+  {w:"vital",p:"/ˈvaɪtl/",m:"매우 중요한, 생명의",c:"형용사",e:"Sleep is vital for good health.",k:"수면은 좋은 건강을 위해 매우 중요하다."},
+  {w:"volunteer",p:"/ˌvɑːlənˈtɪər/",m:"자원봉사자, 자원하다",c:"명사·동사",e:"She volunteers at the local hospital every weekend.",k:"그녀는 매주 주말에 지역 병원에서 자원봉사를 한다."},
+  {w:"adapt",p:"/əˈdæpt/",m:"적응하다, 각색하다",c:"동사",e:"Animals must adapt to survive in changing environments.",k:"동물들은 변화하는 환경에서 살아남기 위해 적응해야 한다."},
+  {w:"adequate",p:"/ˈædɪkwət/",m:"적절한, 충분한",c:"형용사",e:"Make sure you have adequate preparation for the exam.",k:"시험을 위한 충분한 준비를 갖추어야 한다."},
+  {w:"adjust",p:"/əˈdʒʌst/",m:"조정하다, 적응하다",c:"동사",e:"You need to adjust your attitude toward learning.",k:"학습에 대한 태도를 조정할 필요가 있다."},
+  {w:"adopt",p:"/əˈdɑːpt/",m:"채택하다, 입양하다",c:"동사",e:"The school adopted a new teaching method.",k:"학교는 새로운 교수법을 채택했다."},
+  {w:"assist",p:"/əˈsɪst/",m:"돕다, 보조하다",c:"동사",e:"Can you assist me with this task?",k:"이 작업을 도와줄 수 있나요?"},
+  {w:"assume",p:"/əˈsjuːm/",m:"가정하다, 추정하다",c:"동사",e:"Do not assume that you already know the answer.",k:"이미 답을 알고 있다고 가정하지 마라."},
+  {w:"aware",p:"/əˈwer/",m:"인식하는, 알고 있는",c:"형용사",e:"Are you aware of the risks involved in this activity?",k:"이 활동에 관련된 위험을 알고 있나요?"},
+  {w:"brief",p:"/briːf/",m:"짧은, 간결한",c:"형용사",e:"Please give a brief summary of the main points.",k:"요점을 간결하게 요약해 주세요."},
+  {w:"broad",p:"/brɔːd/",m:"넓은, 광범위한",c:"형용사",e:"She has a broad knowledge of world history.",k:"그녀는 세계 역사에 대한 광범위한 지식을 가지고 있다."},
+  {w:"capture",p:"/ˈkæptʃər/",m:"포착하다, 사로잡다",c:"동사",e:"The photographer captured a beautiful sunset.",k:"사진작가는 아름다운 일몰을 포착했다."},
+  {w:"clarify",p:"/ˈklærɪfaɪ/",m:"명확히 하다",c:"동사",e:"Could you clarify what you mean by that?",k:"그것이 무슨 뜻인지 명확히 해줄 수 있나요?"},
+  {w:"collapse",p:"/kəˈlæps/",m:"붕괴하다, 쓰러지다",c:"동사·명사",e:"The bridge collapsed due to heavy flooding.",k:"다리는 심한 홍수로 인해 붕괴되었다."},
+  {w:"compete",p:"/kəmˈpiːt/",m:"경쟁하다",c:"동사",e:"Students compete for the top prize in the science fair.",k:"학생들은 과학 박람회에서 최고상을 위해 경쟁한다."},
+  {w:"complex",p:"/ˈkɑːmpleks/",m:"복잡한",c:"형용사",e:"This is a very complex problem that requires careful analysis.",k:"이것은 신중한 분석이 필요한 매우 복잡한 문제이다."},
+  {w:"concept",p:"/ˈkɑːnsept/",m:"개념, 관념",c:"명사",e:"The concept of democracy is central to modern politics.",k:"민주주의의 개념은 현대 정치의 핵심이다."},
+  {w:"confirm",p:"/kənˈfɜːrm/",m:"확인하다, 확정하다",c:"동사",e:"Please confirm your reservation by email.",k:"이메일로 예약을 확인해 주세요."},
+  {w:"conscious",p:"/ˈkɑːnʃəs/",m:"의식하는, 자각하는",c:"형용사",e:"She was very conscious of her appearance.",k:"그녀는 자신의 외모를 매우 의식했다."},
+  {w:"construct",p:"/kənˈstrʌkt/",m:"건설하다, 구성하다",c:"동사",e:"They are constructing a new school in our neighborhood.",k:"그들은 우리 동네에 새 학교를 건설하고 있다."},
+  {w:"contrast",p:"/ˈkɑːntræst/",m:"대조, 대비하다",c:"명사·동사",e:"There is a sharp contrast between the two opinions.",k:"두 의견 사이에는 뚜렷한 대조가 있다."},
+  {w:"cooperate",p:"/koʊˈɑːpəreɪt/",m:"협력하다, 협동하다",c:"동사",e:"We must cooperate to solve this global problem.",k:"우리는 이 세계적인 문제를 해결하기 위해 협력해야 한다."},
+  {w:"creative",p:"/kriˈeɪtɪv/",m:"창의적인",c:"형용사",e:"The students came up with very creative solutions.",k:"학생들은 매우 창의적인 해결책을 생각해냈다."},
+  {w:"critical",p:"/ˈkrɪtɪkl/",m:"중요한, 비판적인",c:"형용사",e:"Critical thinking is a key skill in today's world.",k:"비판적 사고는 오늘날 세계에서 핵심적인 기술이다."},
+  {w:"decline",p:"/dɪˈklaɪn/",m:"감소하다, 거절하다",c:"동사·명사",e:"The number of birds in the area has declined sharply.",k:"그 지역의 새 수가 급격히 감소했다."},
+  {w:"define",p:"/dɪˈfaɪn/",m:"정의하다",c:"동사",e:"How would you define the word 'success'?",k:"'성공'이라는 단어를 어떻게 정의하겠습니까?"},
+  {w:"deliver",p:"/dɪˈlɪvər/",m:"전달하다, 배달하다",c:"동사",e:"The package was delivered to the wrong address.",k:"소포가 잘못된 주소로 배달되었다."},
+  {w:"demand",p:"/dɪˈmænd/",m:"요구하다, 수요",c:"동사·명사",e:"The demand for electric cars is increasing rapidly.",k:"전기차에 대한 수요가 빠르게 증가하고 있다."},
+  {w:"describe",p:"/dɪˈskraɪb/",m:"묘사하다, 설명하다",c:"동사",e:"Can you describe the person you saw?",k:"당신이 본 사람을 묘사해 줄 수 있나요?"},
+  {w:"desire",p:"/dɪˈzaɪər/",m:"바라다, 욕구",c:"동사·명사",e:"She has a strong desire to travel the world.",k:"그녀는 세계를 여행하고 싶은 강한 욕구가 있다."},
+  {w:"detect",p:"/dɪˈtekt/",m:"감지하다, 발견하다",c:"동사",e:"The sensor can detect even small changes in temperature.",k:"센서는 온도의 아주 작은 변화도 감지할 수 있다."},
+  {w:"develop",p:"/dɪˈveləp/",m:"발전하다, 개발하다",c:"동사",e:"We need to develop new strategies for growth.",k:"우리는 성장을 위한 새로운 전략을 개발해야 한다."},
+  {w:"diverse",p:"/daɪˈvɜːrs/",m:"다양한",c:"형용사",e:"Our school has a very diverse student population.",k:"우리 학교는 매우 다양한 학생들로 구성되어 있다."},
+  {w:"dominate",p:"/ˈdɑːmɪneɪt/",m:"지배하다, 우세하다",c:"동사",e:"Technology dominates almost every aspect of modern life.",k:"기술은 현대 생활의 거의 모든 측면을 지배한다."},
+  {w:"eliminate",p:"/ɪˈlɪmɪneɪt/",m:"제거하다, 없애다",c:"동사",e:"We aim to eliminate hunger in our region.",k:"우리는 지역의 기아를 없애는 것을 목표로 한다."},
+  {w:"enable",p:"/ɪˈneɪbl/",m:"가능하게 하다",c:"동사",e:"Technology enables us to communicate instantly.",k:"기술은 우리가 즉시 소통할 수 있게 해준다."},
+  {w:"ensure",p:"/ɪnˈʃʊər/",m:"보장하다, 확실히 하다",c:"동사",e:"Please ensure that all windows are closed before you leave.",k:"떠나기 전에 모든 창문이 닫혀 있는지 확인해 주세요."},
+  {w:"entire",p:"/ɪnˈtaɪər/",m:"전체의, 완전한",c:"형용사",e:"The entire class was excited about the field trip.",k:"학급 전체가 현장 학습에 흥분했다."},
+  {w:"establish",p:"/ɪˈstæblɪʃ/",m:"설립하다, 확립하다",c:"동사",e:"The school was established over one hundred years ago.",k:"학교는 100년 이상 전에 설립되었다."},
+  {w:"estimate",p:"/ˈestɪmət/",m:"추정하다, 추산",c:"동사·명사",e:"Can you estimate how long this task will take?",k:"이 작업이 얼마나 걸릴지 추정할 수 있나요?"},
+  {w:"examine",p:"/ɪɡˈzæmɪn/",m:"조사하다, 검사하다",c:"동사",e:"The doctor examined the patient carefully.",k:"의사는 환자를 신중하게 검사했다."},
+  {w:"exception",p:"/ɪkˈsepʃən/",m:"예외",c:"명사",e:"There is an exception to every rule.",k:"모든 규칙에는 예외가 있다."},
+  {w:"experiment",p:"/ɪkˈsperɪmənt/",m:"실험, 실험하다",c:"명사·동사",e:"Scientists conduct experiments to test their hypotheses.",k:"과학자들은 가설을 검증하기 위해 실험을 수행한다."},
+  {w:"explicit",p:"/ɪkˈsplɪsɪt/",m:"명시적인, 명확한",c:"형용사",e:"The teacher gave explicit instructions for the assignment.",k:"선생님은 과제에 대한 명확한 지시를 내렸다."},
+  {w:"expose",p:"/ɪkˈspoʊz/",m:"드러내다, 노출시키다",c:"동사",e:"The investigation exposed corruption in the government.",k:"조사는 정부의 부패를 드러냈다."},
+  {w:"factor",p:"/ˈfæktər/",m:"요인, 요소",c:"명사",e:"Exercise is an important factor in maintaining good health.",k:"운동은 좋은 건강을 유지하는 데 중요한 요소이다."},
+  {w:"familiar",p:"/fəˈmɪliər/",m:"익숙한, 친숙한",c:"형용사",e:"This song sounds very familiar to me.",k:"이 노래는 나에게 매우 익숙하게 들린다."},
+  {w:"feature",p:"/ˈfiːtʃər/",m:"특징, 특색",c:"명사",e:"The most interesting feature of this phone is its camera.",k:"이 전화기의 가장 흥미로운 특징은 카메라이다."},
+  {w:"focus",p:"/ˈfoʊkəs/",m:"집중하다, 초점",c:"동사·명사",e:"Try to focus on the most important tasks first.",k:"가장 중요한 일에 먼저 집중하려고 노력하세요."},
+  {w:"function",p:"/ˈfʌŋkʃən/",m:"기능, 역할",c:"명사·동사",e:"The function of the heart is to pump blood.",k:"심장의 기능은 혈액을 펌프질하는 것이다."},
+  {w:"fundamental",p:"/ˌfʌndəˈmentl/",m:"근본적인, 기본적인",c:"형용사",e:"Respect for others is a fundamental value.",k:"타인에 대한 존중은 근본적인 가치이다."},
+  {w:"global",p:"/ˈɡloʊbəl/",m:"전 세계적인",c:"형용사",e:"Climate change is a global problem.",k:"기후 변화는 전 세계적인 문제이다."},
+  {w:"grant",p:"/ɡrænt/",m:"허락하다, 수여하다",c:"동사",e:"The government granted funds to support education.",k:"정부는 교육을 지원하기 위해 자금을 지원했다."},
+  {w:"guarantee",p:"/ˌɡærənˈtiː/",m:"보장하다, 보증",c:"동사·명사",e:"Hard work does not guarantee success, but it helps.",k:"열심히 한다고 반드시 성공하는 것은 아니지만 도움이 된다."},
+  {w:"hypothesis",p:"/haɪˈpɑːθəsɪs/",m:"가설",c:"명사",e:"The scientist tested her hypothesis through experiments.",k:"과학자는 실험을 통해 자신의 가설을 검증했다."},
+  {w:"identify",p:"/aɪˈdentɪfaɪ/",m:"확인하다, 식별하다",c:"동사",e:"Can you identify the main cause of the problem?",k:"문제의 주요 원인을 확인할 수 있나요?"}
+];
+
+const CATS = ["전체", "동사", "명사", "형용사", "명사·형용사", "동사·명사", "명사·동사"];
+const MODES = [
+  {id:"meaning", icon:"🎯", name:"단어 → 뜻", desc:"4개 보기에서 뜻 선택", pts:"최대 12점"},
+  {id:"spell",   icon:"⌨️", name:"뜻 → 스펠링", desc:"직접 단어 입력", pts:"최대 18점"},
+  {id:"oxquiz",  icon:"❓", name:"O/X 퀴즈", desc:"뜻이 맞으면 O, 틀리면 X", pts:"최대 10점"},
+];
+const DIFFS = [
+  {id:"easy", label:"쉬움", sub:"5문제"},
+  {id:"normal", label:"보통", sub:"10문제"},
+  {id:"hard", label:"어려움", sub:"20문제"},
+  {id:"master", label:"마스터", sub:"30문제"},
+];
+const DIFF_COUNT = {easy:5, normal:10, hard:20, master:30};
+
+let state = {
+  screen: "home",
+  mode: "meaning",
+  cat: "전체",
+  diff: "normal",
+  pool: [],
+  qIdx: 0,
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  correct: 0,
+  answered: false,
+};
+
+function shuffle(arr) {
+  let a = [...arr];
+  for (let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function filteredWords() {
+  if (state.cat === "전체") return WORDS;
+  return WORDS.filter(w => w.c === state.cat || w.c.includes(state.cat.replace("·","·")));
+}
+
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US';
+  utter.rate = 0.85;
+  utter.pitch = 1;
+  const btn = document.getElementById('speakBtn');
+  if (btn) { btn.classList.add('speaking'); btn.textContent = '🔊 재생 중...'; }
+  utter.onend = () => {
+    const b = document.getElementById('speakBtn');
+    if (b) { b.classList.remove('speaking'); b.textContent = '🔊 발음 듣기'; }
+  };
+  utter.onerror = () => {
+    const b = document.getElementById('speakBtn');
+    if (b) { b.classList.remove('speaking'); b.textContent = '🔊 발음 듣기'; }
+  };
+  window.speechSynthesis.speak(utter);
+}
+
+function render() {
+  document.getElementById('hStreak').textContent = state.streak;
+  document.getElementById('hScore').textContent = state.score;
+  const main = document.getElementById('mainArea');
+  if (state.screen === "home") main.innerHTML = renderHome();
+  else if (state.screen === "game") main.innerHTML = renderGame();
+  else if (state.screen === "result") main.innerHTML = renderResult();
+  attachEvents();
+  // auto-speak current word when game screen renders
+  if (state.screen === "game" && !state.answered) {
+    const w = state.pool[state.qIdx];
+    if (w) setTimeout(() => speakWord(w.w), 300);
+  }
+}
+
+function renderHome() {
+  return `<div class="home">
+  <div class="home-hero">
+    <div class="hero-title">수능 필수 영단어<br>게임으로 마스터! 🚀</div>
+    <div class="hero-sub">고1 필수 어휘 200개를 재미있게 외워보세요.<br>게임 모드로 빠르게 실력을 늘릴 수 있어요.</div>
+    <div class="hero-nums">
+      <div class="hero-num"><div class="hero-num-val">200</div><div class="hero-num-label">수록 단어</div></div>
+      <div class="hero-num"><div class="hero-num-val">3</div><div class="hero-num-label">게임 모드</div></div>
+      <div class="hero-num"><div class="hero-num-val">3</div><div class="hero-num-label">난이도</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">게임 모드</div>
+  <div class="mode-grid">
+    ${MODES.map(m=>`
+    <div class="mode-card ${state.mode===m.id?'active':''}" data-mode="${m.id}">
+      <div class="mode-pts">${m.pts}</div>
+      <div class="mode-icon">${m.icon}</div>
+      <div class="mode-name">${m.name}</div>
+      <div class="mode-desc">${m.desc}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="section-title">품사 필터</div>
+  <div class="cat-scroll">
+    ${CATS.map(c=>`<div class="cat-pill ${state.cat===c?'active':''}" data-cat="${c}">${c}</div>`).join('')}
+  </div>
+
+  <div class="section-title">문제 수</div>
+  <div class="difficulty-row">
+    ${DIFFS.map(d=>`
+    <div class="diff-btn ${state.diff===d.id?'active':''}" data-diff="${d.id}">
+      <div class="diff-label">${d.label}</div>
+      <div class="diff-sub">${d.sub}</div>
+    </div>`).join('')}
+  </div>
+
+  <button class="start-btn" id="startBtn">게임 시작 →</button>
+  </div>`;
+}
+
+function renderGame() {
+  const total = state.pool.length;
+  const pct = (state.qIdx / total * 100).toFixed(0);
+  const w = state.pool[state.qIdx];
+
+  let qBody = "";
+  if (state.mode === "meaning") {
+    const opts = shuffle([w.m, ...shuffle(WORDS.filter(x=>x.w!==w.w)).slice(0,3).map(x=>x.m)]);
+    qBody = `
+    <div class="question-card pop">
+      <div class="q-badge">단어 → 뜻 &nbsp;|&nbsp; ${state.qIdx+1} / ${total}</div>
+      <div class="q-word">${w.w}</div>
+      <div class="q-pron">${w.p}</div>
+      <div class="q-pos">${w.c}</div>
+      <button class="speak-btn" id="speakBtn">🔊 발음 듣기</button>
+    </div>
+    <div class="options" id="opts">
+      ${opts.map((o,i)=>`<button class="option" data-ans="${o}" data-correct="${w.m}">
+        <div class="opt-idx">${'ABCD'[i]}</div>${o}
+      </button>`).join('')}
+    </div>`;
+  } else if (state.mode === "spell") {
+    const shown = Math.max(1, Math.floor(w.w.length * 0.3));
+    const boxes = w.w.split('').map((ch,i)=>`<div class="lbox ${i<shown?'shown':''}">${i<shown?ch:'?'}</div>`).join('');
+    qBody = `
+    <div class="question-card pop">
+      <div class="q-badge">뜻 → 스펠링 &nbsp;|&nbsp; ${state.qIdx+1} / ${total}</div>
+      <div class="q-meaning-big">${w.m}</div>
+      <div class="q-pos">${w.c}</div>
+      <button class="speak-btn" id="speakBtn">🔊 발음 듣기</button>
+    </div>
+    <div class="hint-row">${boxes}</div>
+    <input type="text" class="spell-input" id="spellIn" placeholder="영어로 입력…" autocomplete="off" spellcheck="false">
+    <button class="action-btn" id="spellCheck">확인 ✓</button>`;
+  } else {
+    const isReal = Math.random() > 0.45;
+    const shownM = isReal ? w.m : shuffle(WORDS.filter(x=>x.w!==w.w))[0].m;
+    const correct = isReal ? "O" : "X";
+    qBody = `
+    <div class="question-card pop">
+      <div class="q-badge">O / X 퀴즈 &nbsp;|&nbsp; ${state.qIdx+1} / ${total}</div>
+      <div class="q-word">${w.w}</div>
+      <div class="q-pron">${w.p}</div>
+      <button class="speak-btn" id="speakBtn">🔊 발음 듣기</button>
+    </div>
+    <div class="shown-meaning">"${shownM}"</div>
+    <div class="ox-grid">
+      <button class="ox-btn" data-ox="O" data-correct="${correct}">⭕</button>
+      <button class="ox-btn" data-ox="X" data-correct="${correct}">❌</button>
+    </div>`;
+  }
+
+  return `
+  <div class="progress-wrap">
+    <div class="progress-info"><span>${state.qIdx+1} / ${total}</span><span>🔥 ${state.streak}연속</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+  </div>
+  ${qBody}
+  <div id="feedbackArea"></div>`;
+}
+
+function renderResult() {
+  const total = state.pool.length;
+  const pct = Math.round(state.correct / total * 100);
+  const grade = pct >= 90 ? "S" : pct >= 80 ? "A" : pct >= 60 ? "B" : pct >= 40 ? "C" : "D";
+  const gradeColor = pct >= 90 ? "#43e8b0" : pct >= 80 ? "#6c63ff" : pct >= 60 ? "#ffbd2e" : "#ff6b9d";
+  const msgs = {S:"완벽해요! 진짜 단어 마스터! 🏆",A:"훌륭해요! 조금만 더 가면 만점 🌟",B:"잘하고 있어요! 꾸준히 연습해요 💪",C:"다시 도전해보세요! 반복이 답이에요 📚",D:"포기하지 마요! 처음부터 다시 시작해봐요 🔥"};
+  return `<div class="result-wrap">
+  <div class="result-hero">
+    <div class="result-grade" style="color:${gradeColor}">${grade}</div>
+    <div class="result-pts">${state.score}점 획득</div>
+    <div class="result-msg">${msgs[grade]}</div>
+  </div>
+  <div class="result-grid">
+    <div class="ritem"><div class="ritem-val" style="color:#43e8b0">${state.correct}</div><div class="ritem-label">정답</div></div>
+    <div class="ritem"><div class="ritem-val" style="color:#ff6b9d">${total - state.correct}</div><div class="ritem-label">오답</div></div>
+    <div class="ritem"><div class="ritem-val" style="color:#6c63ff">${state.maxStreak}</div><div class="ritem-label">최고 연속</div></div>
+  </div>
+  <button class="action-btn" id="retryBtn">다시 도전 🔄</button>
+  <button class="action-btn secondary" id="homeBtn">홈으로 돌아가기</button>
+  </div>`;
+}
+
+function attachEvents() {
+  document.querySelectorAll('[data-mode]').forEach(el => {
+    el.addEventListener('click', () => { state.mode = el.dataset.mode; render(); });
+  });
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    el.addEventListener('click', () => { state.cat = el.dataset.cat; render(); });
+  });
+  document.querySelectorAll('[data-diff]').forEach(el => {
+    el.addEventListener('click', () => { state.diff = el.dataset.diff; render(); });
+  });
+
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) startBtn.addEventListener('click', startGame);
+
+  document.querySelectorAll('.option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.answered) return;
+      state.answered = true;
+      const chosen = btn.dataset.ans;
+      const correct = btn.dataset.correct;
+      const ok = chosen === correct;
+      document.querySelectorAll('.option').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.ans === correct) b.classList.add('correct');
+        else if (b === btn && !ok) b.classList.add('wrong');
+      });
+      handleAnswer(ok, state.pool[state.qIdx]);
+    });
+  });
+
+  const spellCheck = document.getElementById('spellCheck');
+  if (spellCheck) spellCheck.addEventListener('click', doSpellCheck);
+  const spellIn = document.getElementById('spellIn');
+  if (spellIn) { spellIn.addEventListener('keydown', e => { if(e.key==='Enter') doSpellCheck(); }); setTimeout(()=>spellIn.focus(),200); }
+
+  document.querySelectorAll('.ox-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.answered) return;
+      state.answered = true;
+      const chosen = btn.dataset.ox;
+      const correct = btn.dataset.correct;
+      const ok = chosen === correct;
+      document.querySelectorAll('.ox-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.ox === correct) b.classList.add('correct');
+        else if (b === btn && !ok) b.classList.add('wrong');
+      });
+      handleAnswer(ok, state.pool[state.qIdx]);
+    });
+  });
+
+  const retryBtn = document.getElementById('retryBtn');
+  if (retryBtn) retryBtn.addEventListener('click', startGame);
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.addEventListener('click', () => { state.screen = "home"; render(); });
+
+  const speakBtn = document.getElementById('speakBtn');
+  if (speakBtn) {
+    speakBtn.addEventListener('click', () => {
+      const w = state.pool[state.qIdx];
+      if (w) speakWord(w.w);
+    });
+  }
+}
+
+function doSpellCheck() {
+  if (state.answered) return;
+  state.answered = true;
+  const input = document.getElementById('spellIn');
+  if (!input) return;
+  const val = input.value.trim().toLowerCase();
+  const w = state.pool[state.qIdx];
+  const ok = val === w.w.toLowerCase();
+  input.classList.add(ok ? 'ok' : 'fail');
+  input.disabled = true;
+  document.getElementById('spellCheck').disabled = true;
+  if (!ok) { input.classList.add('shake'); }
+  handleAnswer(ok, w);
+}
+
+function handleAnswer(ok, w) {
+  const pts = state.mode === 'spell' ? 15 : state.mode === 'meaning' ? 10 : 8;
+  if (ok) {
+    state.score += pts + state.streak * 2;
+    state.streak++;
+    state.correct++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+    if (state.streak >= 3) showToast(`🔥 ${state.streak}연속 정답! +${state.streak*2} 보너스`);
+  } else {
+    state.streak = 0;
+  }
+  document.getElementById('hStreak').textContent = state.streak;
+  document.getElementById('hScore').textContent = state.score;
+  showFeedback(ok, w);
+}
+
+function showFeedback(ok, w) {
+  const fb = document.getElementById('feedbackArea');
+  if (!fb) return;
+  const total = state.pool.length;
+  const isLast = state.qIdx >= total - 1;
+  fb.innerHTML = `
+  <div class="feedback-card ${ok?'ok':'fail'} pop">
+    <div class="fb-title">${ok ? '🎉 정답입니다!' : `😅 오답! 정답: ${w.w}`}</div>
+    ${!ok ? `<div class="fb-answer">${w.m}</div>` : ''}
+    <div class="example-wrap">
+      <div class="ex-tag">활용 예문</div>
+      <div class="ex-en">${w.e}</div>
+      <div class="ex-ko">${w.k}</div>
+    </div>
+  </div>
+  <button class="action-btn" id="nextBtn" style="margin-top:12px">${isLast ? '결과 보기 →' : '다음 문제 →'}</button>`;
+  document.getElementById('nextBtn').addEventListener('click', nextQ);
+}
+
+function nextQ() {
+  state.qIdx++;
+  state.answered = false;
+  if (state.qIdx >= state.pool.length) {
+    state.screen = "result"; render(); return;
+  }
+  state.screen = "game"; render();
+}
+
+function startGame() {
+  let fw = filteredWords();
+  if (fw.length < 4) fw = WORDS;
+  const count = DIFF_COUNT[state.diff];
+  state.pool = shuffle(fw).slice(0, count);
+  state.qIdx = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.correct = 0;
+  state.answered = false;
+  state.screen = "game";
+  render();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// PWA service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+render();
+</script>
+</body>
+</html>
